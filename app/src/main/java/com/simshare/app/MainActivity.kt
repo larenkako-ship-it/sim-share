@@ -59,7 +59,6 @@ class MainActivity : AppCompatActivity() {
     private var currentIccid = ""
     private var currentPukPin = ""
 
-    // Stability & cooldown to avoid duplicate sends while holding the card
     private var lastCandidatePhone = ""
     private var candidateHits = 0
     private var lastSentPhone = ""
@@ -186,15 +185,14 @@ class MainActivity : AppCompatActivity() {
             .replace('O', '0').replace('o', '0')
             .replace('I', '1').replace('l', '1')
 
-        // Extract Moroccan mobile number (06 / 07 or +212 6/7)
         var phone = ""
-        val intl = Regex("(?:\+|00)?212[\s.-]?([67]\d(?:[\s.-]?\d){7})").find(normalized)
+        val intl = Regex("""(?:\+|00)?212[\s.-]?([67]\d(?:[\s.-]?\d){7})""").find(normalized)
         if (intl != null) {
             val tail = intl.groupValues[1].filter { it.isDigit() }
             if (tail.length == 9) phone = "0$tail"
         }
         if (phone.isEmpty()) {
-            val local = Regex("0[67]\d(?:[\s.-]?\d){7}").find(normalized)
+            val local = Regex("""0[67]\d(?:[\s.-]?\d){7}""").find(normalized)
             if (local != null) {
                 val digits = local.value.filter { it.isDigit() }
                 if (digits.length == 10) phone = digits
@@ -202,7 +200,6 @@ class MainActivity : AppCompatActivity() {
         }
         if (phone.isEmpty()) return
 
-        // Require 2 matching frames for rock-solid accuracy
         if (phone == lastCandidatePhone) {
             candidateHits++
         } else {
@@ -212,11 +209,11 @@ class MainActivity : AppCompatActivity() {
         }
         if (candidateHits < 2) return
 
-        val compact = normalized.replace(Regex("[\s-]"), "")
-        val iccid = Regex("89212\d{13,15}").find(compact)?.value
-            ?: Regex("89\d{16,18}").find(compact)?.value
+        val compact = normalized.replace(Regex("""[\s-]"""), "")
+        val iccid = Regex("""89212\d{13,15}""").find(compact)?.value
+            ?: Regex("""89\d{16,18}""").find(compact)?.value
             ?: ""
-        val puk = Regex("PUK\s*1?\s*[:=-]?\s*(\d{8})", RegexOption.IGNORE_CASE)
+        val puk = Regex("""PUK\s*1?\s*[:=-]?\s*(\d{8})""", RegexOption.IGNORE_CASE)
             .find(rawText)?.groupValues?.getOrNull(1) ?: ""
         val pukPin = if (puk.isNotEmpty()) "PUK: $puk" else ""
 
