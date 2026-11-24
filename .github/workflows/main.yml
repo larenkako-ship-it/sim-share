@@ -1,4 +1,4 @@
-name: Build SIM Instant Share APK
+name: Build Android APK and Windows EXE
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-android-apk:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,3 +23,19 @@ jobs:
         with:
           name: SIM-Instant-Share-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+
+  build-windows-exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+      - name: Build Windows EXE
+        run: pyinstaller --onefile --windowed --name "SIM_Instant_Share_PC" SIM_Instant_Share_AllInOne.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SIM-Instant-Share-Windows-EXE
+          path: dist/SIM_Instant_Share_PC.exe
